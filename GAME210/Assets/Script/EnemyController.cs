@@ -49,6 +49,7 @@ public class EnemyController : MonoBehaviour
 
     private void Movement()
     {
+        // If the distance between the target from you is greater than the attack radius, move towards player, else shoot player
         if (Vector3.Distance(target.transform.position, transform.position) > 5)
         {
             agent.destination = target.transform.position;
@@ -65,7 +66,8 @@ public class EnemyController : MonoBehaviour
 
         agent.stoppingDistance = stoppingDis;
         agent.speed = speed;
-
+        
+        // Look towards the player
         transform.LookAt(target.transform.position, Vector3.up);
         float rotX = transform.rotation.x;
         rotX = Mathf.Clamp(rotX, minRotX, maxRotX);
@@ -74,16 +76,18 @@ public class EnemyController : MonoBehaviour
 
     private void Shoot()
     {
+        // If you're within attak range and not shooting, then shoot
         if (canShoot && !isShooting)
         {
             Vector3 dir = target.transform.position - transform.position;
             dir += targetOffset;
 
-
+            // Create bullet and apply force depending on the direction the enemy is looking at
             GameObject bullet = Instantiate(bulletPrefab, bulletSpawnPos.transform.position, Quaternion.identity);
             bullet.GetComponent<Rigidbody>().AddForce(dir * bulletPower);
             Destroy(bullet, 2);
-
+            
+            // Reload gun
             isShooting = true;
             StartCoroutine(Reload());
         }
@@ -91,10 +95,12 @@ public class EnemyController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        // If hit by bullet, decrease life by one
         if (other.gameObject.CompareTag("Bullet"))
         {
             lives--;
-
+            
+            // If life is 0 then kill enemy and spawn a coin next to their body
             if (lives <= 0 && isAlive)
             {
                 animator.enabled = false;
@@ -110,6 +116,7 @@ public class EnemyController : MonoBehaviour
 
     private IEnumerator Reload()
     {
+        // After the reload time, the enemy can shoot again
         yield return new WaitForSeconds(reloadTime);
         isShooting = false;
     }
