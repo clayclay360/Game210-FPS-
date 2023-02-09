@@ -12,7 +12,7 @@ public class EnemyController : MonoBehaviour
 
     public float bulletPower;
     public float reloadTime;
-    public int lives;
+    public float lives;
 
     public Vector3 targetOffset;
     public GameObject target, bulletPrefab, bulletSpawnPos, Gun, Coin;
@@ -24,12 +24,14 @@ public class EnemyController : MonoBehaviour
 
     private PlayerController playerController;
     private GameController gameController;
+    private Rigidbody rb;
 
     // Start is called before the first frame update
     void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         animator = GetComponent<Animator>();
+        rb = GetComponent<Rigidbody>();
 
         playerController = FindObjectOfType<PlayerController>();
         gameController = FindObjectOfType<GameController>();
@@ -95,22 +97,34 @@ public class EnemyController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        // If hit by bullet, decrease life by one
-        if (other.gameObject.CompareTag("Bullet"))
+        // If hit decrease life
+        switch (other.gameObject.tag)
         {
-            lives--;
-            
-            // If life is 0 then kill enemy and spawn a coin next to their body
-            if (lives <= 0 && isAlive)
-            {
+            case "Bullet":
+                lives--;
+                break;
+            case "Hands":
+                lives -= 1.5f;
+                break;
+            case "Force":
+                lives = 0;
+                Vector3 dir = playerController.gameObject.transform.position - transform.position;
                 animator.enabled = false;
-                isAlive = false;
-                Gun.SetActive(false);
-                gameController.enemyCount--;
+                rb.AddForce(dir * playerController.forcePower, ForceMode.Force);
+                break;
+        }
 
-                Instantiate(Coin, new Vector3(transform.position.x,transform.position.y + 1
-                    ,transform.position.z), Quaternion.identity);
-            }
+        // If life is 0 then kill enemy and spawn a coin next to their body
+        if (lives <= 0 && isAlive)
+        {
+            animator.enabled = false;
+            isAlive = false;
+            Gun.SetActive(false);
+            gameController.enemyCount--;
+
+            Instantiate(Coin, new Vector3(transform.position.x, transform.position.y + 1
+                , transform.position.z), Quaternion.identity);
+            Destroy(gameObject, 5);
         }
     }
 

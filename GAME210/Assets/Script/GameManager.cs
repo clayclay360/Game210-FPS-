@@ -5,14 +5,14 @@ public struct CanPlayer
     public bool controlCamera;
     public bool walk;
     public bool jump;
-    public bool shoot;
+    public bool attack;
 }
 
 public struct IsPlayer
 {
     public bool walking;
     public bool jumping;
-    public bool shooting;
+    public bool attacking;
 }
 
 public class GameManager
@@ -32,11 +32,11 @@ public class GameManager
         canPlayer.controlCamera = true;
         canPlayer.walk = true;
         canPlayer.jump = true;
-        canPlayer.shoot = true;
+        canPlayer.attack = true;
 
         isPlayer.walking = false;
         isPlayer.jumping = false;
-        isPlayer.shooting = false;
+        isPlayer.attacking = false;
         Debug.Log("variables reset");
     }
 }

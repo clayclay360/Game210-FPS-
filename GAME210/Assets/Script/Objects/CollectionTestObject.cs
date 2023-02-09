@@ -8,7 +8,6 @@ public class CollectionTestObject : MonoBehaviour, ICollectable
 
     public void Collect()
     {
-        Debug.Log(objName + " collected!");
         Destroy(gameObject);
     }
 

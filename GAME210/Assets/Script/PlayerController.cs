@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.UI;
 using UnityEngine;
 
 public class PlayerController : MonoBehaviour
@@ -17,13 +18,20 @@ public class PlayerController : MonoBehaviour
     public Rigidbody bulletPrefab;
     public Transform bulletSpawnTransformRight, bulletSpawnTransformLeft;
 
+    [Header("Force Variables")]
+    public float forcePower;
+
     public static GameObject player;
+
+    public bool ForceChargeUp { get{ return forceChargeUp; } set { forceChargeUp = value; } }
 
     private int weapon;
     private float speed;
     private float moveHorizontal;
     private float moveVertical;
     private bool handDirection;
+    private bool isShielding;
+    private bool forceChargeUp;
 
     private Animator animator;
     private CameraController cameraController;
@@ -54,7 +62,7 @@ public class PlayerController : MonoBehaviour
         if (isHealing)
         {
             cameraController._vignette.intensity.value =
-                Mathf.Lerp(cameraController._vignette.intensity.value, 0, recoveringSpeed);
+            Mathf.Lerp(cameraController._vignette.intensity.value, 0, recoveringSpeed);
         }
     }
 
@@ -113,15 +121,43 @@ public class PlayerController : MonoBehaviour
                 GetComponent<Rigidbody>().AddForce(pushDir * GameManager.playerJumpMagnitude);
             }
 
-            //shoot
-            if (Input.GetButton("Fire1") && GameManager.canPlayer.shoot && !GameManager.isPlayer.shooting)
+            //shoot and punch
+            if (Input.GetButton("Fire1") && GameManager.canPlayer.attack && !GameManager.isPlayer.attacking)
             {
-                GameManager.canPlayer.shoot = false;
+                GameManager.canPlayer.attack = false;
                 handDirection = !handDirection;
 
                 GetComponent<Animator>().SetBool("Hand", handDirection);
-                GetComponent<Animator>().SetTrigger("Shoot");
+                GetComponent<Animator>().SetTrigger("Attack");
             }
+
+            //shield
+            if(weapon == 3 && !GameManager.isPlayer.attacking && Input.GetButton("Fire2"))
+            {
+                isShielding = true;
+            }
+            else
+            {
+                isShielding = false;
+            }
+
+            GetComponent<Animator>().SetBool("Shield", isShielding);
+
+            //force push
+            if(weapon == 4 && forceChargeUp)
+            {
+                if (Input.GetMouseButton(0))
+                {
+                    forceChargeUp = true;
+                }
+                else
+                {
+                    forceChargeUp = false;
+                }
+            }
+
+            animator.SetBool("Hold", forceChargeUp);
+
             #endregion
 
             //Animator
@@ -133,6 +169,14 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Alpha2))
             {
                 weapon = 2; //pistol
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha3))
+            {
+                weapon = 3; //sword and sheild
+            }
+            if (Input.GetKeyDown(KeyCode.Alpha4))
+            {
+                weapon = 4; //force push
             }
 
             animator.SetInteger("Weapon", weapon);
@@ -146,21 +190,21 @@ public class PlayerController : MonoBehaviour
         {
             StartCoroutine(CanJumpAgain());
         }
+    }
 
-        if (collision.gameObject.CompareTag("Bullet"))
+    public void TakeDamage()
+    {
+        cameraController._vignette.intensity.value += 0.07f;
+        lives--;
+
+        if (lives <= 0)
         {
-            cameraController._vignette.intensity.value += 0.07f;
-            lives--;
-
-            if(lives<= 0)
-            {
-                isAlive = false;
-                animator.SetBool("Death", true);
-                cameraController.enabled = false;
-                uiController.restartButton.gameObject.SetActive(true);
-                Cursor.visible = true;
-                Cursor.lockState = CursorLockMode.None;
-            }
+            isAlive = false;
+            animator.SetBool("Death", true);
+            cameraController.enabled = false;
+            uiController.restartButton.gameObject.SetActive(true);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
     }
 

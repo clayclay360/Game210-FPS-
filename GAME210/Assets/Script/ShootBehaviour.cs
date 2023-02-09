@@ -19,7 +19,7 @@ public class ShootBehaviour : StateMachineBehaviour
     // OnStateExit is called when a transition ends and the state machine finishes evaluating this state
     override public void OnStateExit(Animator animator, AnimatorStateInfo stateInfo, int layerIndex)
     {
-        GameManager.canPlayer.shoot = true;
+        GameManager.canPlayer.attack = true;
     }
 
     // OnStateMove is called right after Animator.OnAnimatorMove()
